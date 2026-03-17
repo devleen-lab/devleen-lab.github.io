@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Heftruck Praktijkopdrachten - Beoordelingssysteem</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #1a365d;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, #2c5282 100%);
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .user-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: white;
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .nav-tab {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: var(--bg);
+            border-radius: 9999px;
+            white-space: nowrap;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .nav-tab[data-level="basis"] { border-left: 4px solid var(--success); }
+        .nav-tab[data-level="middel"] { border-left: 4px solid var(--warning); }
+        .nav-tab[data-level="expert"] { border-left: 4px solid var(--danger); }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .opdracht-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 5px solid var(--success);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .opdracht-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+
+        .opdracht-card.middel { border-left-color: var(--warning); }
+        .opdracht-card.expert { border-left-color: var(--danger); }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .card-level {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            background: #ecfdf5;
+            color: var(--success);
+        }
+
+        .opdracht-card.middel .card-level { background: #fffbeb; color: var(--warning); }
+        .opdracht-card.expert .card-level { background: #fef2f2; color: var(--danger); }
+
+        .card-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-top: 0.5rem;
+        }
+
+        .card-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        /* Modal/Detail View */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: block;
+        }
+
+        .modal-content {
+            background: var(--card);
+            max-width: 800px;
+            margin: 2rem auto;
+            border-radius: 16px;
+            overflow: hidden;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        /* Detail Sections */
+        .detail-section {
+            margin-bottom: 2rem;
+        }
+
+        .detail-section h3 {
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .steps-list {
+            list-style: none;
+            counter-reset: step;
+        }
+
+        .steps-list li {
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            background: var(--bg);
+            border-radius: 8px;
+            position: relative;
+            padding-left: 3rem;
+        }
+
+        .steps-list li::before {
+            counter-increment: step;
+            content: counter(step);
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1.5rem;
+            height: 1.5rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: bold;
+        }
+
+        .safety-box {
+            background: #fffbeb;
+            border-left: 4px solid var(--warning);
+            padding: 1rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1rem 0;
+        }
+
+        .safety-box h4 {
+            color: var(--warning);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Assessment Form */
+        .beoordeling-form {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+            border: 2px solid var(--border);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .checkbox-item:hover {
+            border-color: var(--primary);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 1.25rem;
+            height: 1.25rem;
+            margin-right: 0.75rem;
+            accent-color: var(--primary);
+        }
+
+        .checkbox-item.checked {
+            background: #ecfdf5;
+            border-color: var(--success);
+        }
+
+        /* Photo Upload */
+        .photo-upload {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .photo-upload:hover {
+            border-color: var(--primary);
+            background: #f8fafc;
+        }
+
+        .photo-upload.has-image {
+            border-style: solid;
+            border-color: var(--success);
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .photo-preview {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Signature Pad */
+        .signature-pad {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            width: 100%;
+            height: 200px;
+            touch-action: none;
+        }
+
+        .signature-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+            width: 100%;
+            justify-content: center;
+            font-size: 1.125rem;
+            padding: 1rem;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Results View */
+        .resultaten-lijst {
+            margin-top: 1rem;
+        }
+
+        .resultaat-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .resultaat-info h4 {
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .resultaat-meta {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .score-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+
+        .score-goed { background: #d1fae5; color: var(--success); }
+        .score-voldoende { background: #fef3c7; color: var(--warning); }
+        .score-herhalen { background: #fee2e2; color: var(--danger); }
+
+        /* QR Code Section */
+        .qr-section {
+            text-align: center;
+            padding: 2rem;
+            background: var(--bg);
+            border-radius: 12px;
+            margin: 1rem 0;
+        }
+
+        #qrcode {
+            margin: 1rem auto;
+            padding: 1rem;
+            background: white;
+            display: inline-block;
+            border-radius: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                margin: 0;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+            
+            .beoordeling-form {
+                padding: 1rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .scanning {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Utility */
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
+        .mt-4 { margin-top: 1rem; }
+        .mb-4 { margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    <path d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                PraktijkOpdrachten Pro
+            </div>
+            <div class="user-badge" id="instructeurNaam">Instructeur: <span>-</span></div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav-tabs">
+        <button class="nav-tab active" onclick="filterOpdrachten('alle')">Alle Opdrachten</button>
+        <button class="nav-tab" data-level="basis" onclick="filterOpdrachten('basis')">Basis (Groen)</button>
+        <button class="nav-tab" data-level="middel" onclick="filterOpdrachten('middel')">Middel (Oranje)</button>
+        <button class="nav-tab" data-level="expert" onclick="filterOpdrachten('expert')">Expert (Rood)</button>
+        <button class="nav-tab" onclick="showResultaten()">Resultaten</button>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        
+        <!-- Instructeur Login Form -->
+        <div id="loginSection" class="detail-section">
+            <div class="beoordeling-form">
+                <h3>Instructeur Login</h3>
+                <div class="form-group">
+                    <label class="form-label">Naam Instructeur</label>
+                    <input type="text" class="form-input" id="instructeurInput" placeholder="Voer je naam in">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Wachtwoord (voor demonstratie: 1234)</label>
+                    <input type="password" class="form-input" id="wachtwoordInput" placeholder="****">
+                </div>
+                <button class="btn btn-primary" onclick="login()">Start Sessie</button>
+            </div>
+        </div>
+
+        <!-- Opdrachten Grid -->
+        <div id="opdrachtenGrid" class="cards-grid hidden"></div>
+
+        <!-- Resultaten View -->
+        <div id="resultatenView" class="hidden">
+            <h2 style="margin-bottom: 1rem;">Recente Beoordelingen</h2>
+            <div id="resultatenLijst" class="resultaten-lijst"></div>
+            <button class="btn btn-secondary mt-4" onclick="exportData()">Exporteer naar Excel/CSV</button>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h2 id="modalTitle">Opdracht Titel</h2>
+                    <span id="modalLevel" class="card-level">Niveau</span>
+                </div>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- QR Code voor snelle toegang -->
+                <div class="qr-section">
+                    <h4>📱 QR Code voor Cursist</h4>
+                    <p style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.5rem;">Laat de cursist scannen om instructies te zien</p>
+                    <div id="qrcode"></div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>🎯 Leerdoel</h3>
+                    <p id="modalDoel">...</p>
+                </div>
+
+                <div class="detail-section">
+                    <h3>📋 Benodigdheden</h3>
+                    <ul id="modalMaterialen"></ul>
+                </div>
+
+                <div class="detail-section">
+                    <h3>⚙️ Uitvoering</h3>
+                    <ol id="modalStappen" class="steps-list"></ol>
+                </div>
+
+                <div class="safety-box">
+                    <h4>⚠️ Veiligheid & Valkuilen</h4>
+                    <ul id="modalSafety"></ul>
+                </div>
+
+                <!-- Beoordelingsformulier -->
+                <div class="beoordeling-form">
+                    <h3>📝 Beoordeling</h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Naam Cursist *</label>
+                        <input type="text" class="form-input" id="cursistNaam" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Beoordelingscriteria</label>
+                        <div class="checkbox-group" id="criteriaChecks">
+                            <!-- Dynamisch gevuld -->
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Foto Bewijs *</label>
+                        <div class="photo-upload" id="photoUpload" onclick="document.getElementById('fileInput').click()">
+                            <div id="uploadPrompt">
+                                <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 0.5rem; color: #94a3b8;">
+                                    <path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                    <path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <p>Klik om foto te maken of uploaden</p>
+                                <p style="font-size: 0.75rem; color: #94a3b8;">(vereist voor certificering)</p>
+                            </div>
+                            <img id="photoPreview" class="photo-preview hidden">
+                        </div>
+                        <input type="file" id="fileInput" class="hidden" accept="image/*" capture="environment" onchange="handleFileSelect(event)">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Opmerkingen</label>
+                        <textarea class="form-input" id="opmerkingen" rows="3" placeholder="Extra observaties..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Digitale Handtekening Cursist *</label>
+                        <canvas id="signaturePad" class="signature-pad"></canvas>
+                        <div class="signature-buttons">
+                            <button type="button" class="btn btn-secondary" onclick="clearSignature()">Wissen</button>
+                            <button type="button" class="btn btn-danger" onclick="closeModal()">Annuleren</button>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-success" onclick="submitBeoordeling()">
+                        ✅ Beoordeling Opslaan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QRCode.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <script>
+        // Data: Praktijkopdrachten
+        const opdrachten = [
+            {
+                id: 1,
+                titel: "Rijvaardigheid",
+                niveau: "basis",
+                tijd: "15 min",
+                doel: "Met zo min mogelijk stuurbewegingen zo vloeiend mogelijk door de bochten gaan",
+                materialen: ["2 Pylons"],
+                stappen: [
+                    "Stap op, gordel om, vorken 15-20 cm van de vloer, versnelling vooruit",
+                    "Blijf zo dicht mogelijk bij de pylon zonder er overheen of tegenaan te rijden",
+                    "Wacht met draaien totdat je met het draaipunt van de heftruck bij de pylon bent",
+                    "Draai je links dan controleer je altijd de rechter achterkant",
+					"Draai je rechts dan controleer je altijd de linker achterkant",
+					"Let ook goed op je vorken aan de voorkant",
+                    "Rijd door naar startpositie"
+                ],
+                safety: [
+                    "Houd de vorken laag bij transport (max 20cm)",
+                    "Kijk over je schouder bij achteruitrijden",
+                    "Geen schokkerige bewegingen"
+                ],
+                criteria: [
+                    "Gordel om, vorken horizontaal op juiste hoogte (2pt)",
+                    "Correct stuurmoment, rustige stuurbewegingen(2pt)",
+                    "Vloeiende draai (2pt)",
+                    "Geen contact met pylons (2pt)"
+                ],
+                maxScore: 8
+            },
+            {
+                id: 2,
+                titel: "Pallets Op- en Afstapelen",
+                niveau: "basis",
+                tijd: "15 min",
+                doel: "Op juiste wijze bedienen van de hendels in combinatie met het besturen van de heftruck",
+                materialen: ["5 lege pallets"],
+                stappen: [
+                    "Stap op, gordel om, vorken van de grond en horizontaal",
+                    "Laat de onderste pallet liggen en pak de bovenste 4 pallets op",
+                    "Positioneer je vorken in het midden van de openingen van de pallet",
+                    "Rijd langzaam naar voor en pak de pallet helemaal op",
+                    "Til de pallet 10 cm op en rij 1 palletlengte naar achteren",
+                    "Zet de 4 pallets neer, laat de onderste liggen en herhaal het proces"
+                ],
+                safety: [
+                    "Altijd met horizontale vorken een pallet oppakken of neerzetten",
+                    "Tilt alleen met zware lasten en doe dit met beleid",
+					"Altijd kijken in de richting die je rijd",
+                    "Zet SIDESHIFT na gebruik altijd terug in het midden"
+                ],
+                criteria: [
+                    "Vorken horizontaal (2pt)",
+                    "Kijken in de richting die je rijd (2pt)",
+                    "Correcte hoogte-inschatting (2pt)",
+                    "Vloeiende bediening van de hendels (2pt)"
+                ],
+                maxScore: 8
+            },
+            {
+                id: 3,
+                titel: "De Brede Balk",
+                niveau: "middel",
+                tijd: "15 min",
+                doel: "Balk op 2 pylons leggen, balk op 1 pylon balanceren, met balk door een versmalling rijden",
+                materialen: ["2 Pylons, lange balk"],
+                stappen: [
+                    "Neem de balk in het midden op het puntje van je vorken",
+                    "Houd de lading laag (15-20cm)",
+                    "Houd rekening met je omgeving",
+                    "Rij en draai rustig",
+                    "Let goed op de balk"
+                ],
+                safety: [
+                    "Let goed op omstanders en voorbijgangers",
+                    "Rij rustig en kijk in de richting die je rijd",
+                    "Bedien de hendels beheerst"
+                ],
+                criteria: [
+                    "Balk in het midden opgepakt op het puntje van de vorken (3pt)",
+                    "Rustig rijden, rustig sturen en rustig de hendels bedienen (2pt)",
+                    "Kijken in de richting die je rijd (3pt)",
+                    "Tijdsmanagement (2pt)"
+                ],
+                maxScore: 10
+            },
+            {
+                id: 4,
+                titel: "Dubbele Diepte Reach",
+                niveau: "expert",
+                tijd: "15 min",
+                doel: "Bedienen van reach-truck met uitschuifbare vorken op 8m hoogte",
+                materialen: ["Reach-truck", "Dubbeldiepe stelling", "Lange pallets (2m)", "Hoogwerkbordes"],
+                stappen: [
+                    "Controleer reach-truck uitschuiver",
+                    "Positioneer in het midden van gang",
+                    "Hef en schuif tegelijk (gecombineerde beweging)",
+                    "Gebruik camera/sensor voor diepte",
+                    "Plaats op 7.5m hoogte",
+                    "Controleer vergrendeling vorken"
+                ],
+                safety: [
+                    "ALTIJD veiligheidsriem gebruiken >6m",
+                    "Check windbelasting bij hoge reach",
+                    "Test remmen vooraf op hoogte"
+                ],
+                criteria: [
+                    "Veiligheidsharnas gebruik (3pt)",
+                    "Gecombineerde beweging (3pt)",
+                    "Precisie op 7.5m (3pt)",
+                    "Efficiënte bediening (3pt)"
+                ],
+                maxScore: 12
+            },
+            {
+                id: 5,
+                titel: "Smalle Gang Techniek",
+                niveau: "middel",
+                tijd: "10 min",
+                doel: "Navigeren in gangen smaller dan 3m met lange last",
+                materialen: ["Lange last (3m+)", "Smalle gang opstelling", "Spiegel/kamera systeem"],
+                stappen: [
+                    "Meet gangbreedte vs last+lengte truck",
+                    "Plan draaipunten vooraf",
+                    "Rijd achteruit waar mogelijk",
+                    "Gebruik spiegel voor controle achterzijde",
+                    "Werk met 'spotter' buiten gevaarzone"
+                ],
+                safety: [
+                    "Spotter altijd in zicht",
+                    "Geen 'knikkers' (slingeren last)",
+                    "Bij twijfel: stap uit en check"
+                ],
+                criteria: [
+                    "Route planning (3pt)",
+                    "Communicatie spotter (2pt)",
+                    "Geen contact wanden (3pt)",
+                    "Efficiëntie (2pt)"
+                ],
+                maxScore: 10
+            },
+            {
+                id: 6,
+                titel: "Extreme Omstandigheden",
+                niveau: "expert",
+                tijd: "20 min",
+                doel: "Werken onder extreme omstandigheden (scheefvlak, ijs, beperkt zicht)",
+                materialen: ["Heftruck met speciale banden", "Glooiend terrein (5°+)", "Sproei-installatie (mist)"],
+                stappen: [
+                    "Voertuiginspectie specifiek voor terrein",
+                    "Test remweg op helling",
+                    "Rijd altijd met last bergopwaarts",
+                    "Gebruik differentieelblokkade",
+                    "Aangepaste snelheid (max 5km/u)"
+                ],
+                safety: [
+                    "Nooit dwars op helling staan",
+                    "Extra grote veiligheidsmarge",
+                    "Noodstopprocedure geoefend"
+                ],
+                criteria: [
+                    "Voertuigkeuze/inspectie (3pt)",
+                    "Techniek helling (4pt)",
+                    "Snelheidsbeheersing (3pt)",
+                    "Veiligheidsbesef (4pt)"
+                ],
+                maxScore: 14
+            }
+        ];
+
+        // State
+        let currentOpdracht = null;
+        let currentUser = null;
+        let beoordelingen = JSON.parse(localStorage.getItem('beoordelingen') || '[]');
+        let signaturePad = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLogin();
+            initSignaturePad();
+        });
+
+        function checkLogin() {
+            const user = localStorage.getItem('instructeur');
+            if (user) {
+                currentUser = user;
+                document.getElementById('instructeurNaam').querySelector('span').textContent = user;
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('opdrachtenGrid').classList.remove('hidden');
+                renderOpdrachten('alle');
+            }
+        }
+
+        function login() {
+            const naam = document.getElementById('instructeurInput').value;
+            const ww = document.getElementById('wachtwoordInput').value;
+            
+            if (naam && ww === '1234') {
+                localStorage.setItem('instructeur', naam);
+                checkLogin();
+            } else {
+                alert('Vul een naam in en gebruik wachtwoord: 1234 (demo)');
+            }
+        }
+
+        function renderOpdrachten(filter) {
+            const grid = document.getElementById('opdrachtenGrid');
+            grid.innerHTML = '';
+            
+            const filtered = filter === 'alle' 
+                ? opdrachten 
+                : opdrachten.filter(o => o.niveau === filter);
+            
+            filtered.forEach(opdracht => {
+                const card = document.createElement('div');
+                card.className = `opdracht-card ${opdracht.niveau}`;
+                card.onclick = () => openModal(opdracht);
+                
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">${opdracht.titel}</div>
+                            <span class="card-level">${opdracht.niveau}</span>
+                        </div>
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" style="color: #94a3b8;">
+                            <path d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </div>
+                    <div style="color: #475569; font-size: 0.875rem; margin-top: 0.5rem;">
+                        ${opdracht.doel}
+                    </div>
+                    <div class="card-meta">
+                        <span>
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 6v6l4 2"/>
+                            </svg>
+                            ${opdracht.tijd}
+                        </span>
+                        <span>
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Max ${opdracht.maxScore} pt
+                        </span>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        function filterOpdrachten(niveau) {
+            // Update active tab
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.textContent.toLowerCase().includes(niveau) || (niveau === 'alle' && tab.textContent.includes('Alle'))) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            document.getElementById('resultatenView').classList.add('hidden');
+            document.getElementById('opdrachtenGrid').classList.remove('hidden');
+            renderOpdrachten(niveau);
+        }
+
+        function openModal(opdracht) {
+            currentOpdracht = opdracht;
+            document.getElementById('detailModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Vul data in
+            document.getElementById('modalTitle').textContent = opdracht.titel;
+            document.getElementById('modalLevel').textContent = opdracht.niveau;
+            document.getElementById('modalLevel').className = `card-level ${opdracht.niveau}`;
+            document.getElementById('modalDoel').textContent = opdracht.doel;
+            
+            // Materialen
+            const matList = document.getElementById('modalMaterialen');
+            matList.innerHTML = opdracht.materialen.map(m => `<li>${m}</li>`).join('');
+            
+            // Stappen
+            const stapList = document.getElementById('modalStappen');
+            stapList.innerHTML = opdracht.stappen.map(s => `<li>${s}</li>`).join('');
+            
+            // Safety
+            const safetyList = document.getElementById('modalSafety');
+            safetyList.innerHTML = opdracht.safety.map(s => `<li>${s}</li>`).join('');
+            
+            // Criteria checkboxes
+            const criteriaDiv = document.getElementById('criteriaChecks');
+            criteriaDiv.innerHTML = opdracht.criteria.map((c, i) => `
+                <label class="checkbox-item" onclick="toggleCheckbox(this)">
+                    <input type="checkbox" data-points="${c.match(/\d+pt/)[0]}">
+                    <span>${c}</span>
+                </label>
+            `).join('');
+            
+            // Genereer QR Code
+            document.getElementById('qrcode').innerHTML = '';
+            new QRCode(document.getElementById('qrcode'), {
+                text: `${window.location.origin}?opdracht=${opdracht.id}`,
+                width: 128,
+                height: 128
+            });
+            
+            // Reset form
+            document.getElementById('cursistNaam').value = '';
+            document.getElementById('opmerkingen').value = '';
+            document.getElementById('photoPreview').classList.add('hidden');
+            document.getElementById('uploadPrompt').classList.remove('hidden');
+            document.getElementById('photoUpload').classList.remove('has-image');
+            clearSignature();
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('active');
+            document.body.style.overflow = '';
+            currentOpdracht = null;
+        }
+
+        function toggleCheckbox(label) {
+            const checkbox = label.querySelector('input');
+            checkbox.checked = !checkbox.checked;
+            label.classList.toggle('checked', checkbox.checked);
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('photoPreview');
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                    document.getElementById('uploadPrompt').classList.add('hidden');
+                    document.getElementById('photoUpload').classList.add('has-image');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function initSignaturePad() {
+            const canvas = document.getElementById('signaturePad');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            function resize() {
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.lineCap = 'round';
+            }
+            
+            setTimeout(resize, 100);
+            window.addEventListener('resize', resize);
+            
+            let drawing = false;
+            let lastPos = { x: 0, y: 0 };
+            
+            function getPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return {
+                    x: clientX - rect.left,
+                    y: clientY - rect.top
+                };
+            }
+            
+            canvas.addEventListener('mousedown', startDraw);
+            canvas.addEventListener('touchstart', startDraw);
+            
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('touchmove', draw);
+            
+            canvas.addEventListener('mouseup', stopDraw);
+            canvas.addEventListener('mouseout', stopDraw);
+            canvas.addEventListener('touchend', stopDraw);
+            
+            function startDraw(e) {
+                drawing = true;
+                lastPos = getPos(e);
+                e.preventDefault();
+            }
+            
+            function draw(e) {
+                if (!drawing) return;
+                const pos = getPos(e);
+                ctx.beginPath();
+                ctx.moveTo(lastPos.x, lastPos.y);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+                lastPos = pos;
+                e.preventDefault();
+            }
+            
+            function stopDraw() {
+                drawing = false;
+            }
+            
+            signaturePad = {
+                clear: () => ctx.clearRect(0, 0, canvas.width, canvas.height),
+                isEmpty: () => {
+                    const pixelBuffer = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                    return !pixelBuffer.some(channel => channel !== 0);
+                },
+                toDataURL: () => canvas.toDataURL()
+            };
+        }
+
+        function clearSignature() {
+            if (signaturePad) signaturePad.clear();
+        }
+
+        function submitBeoordeling() {
+            const cursist = document.getElementById('cursistNaam').value;
+            if (!cursist) {
+                alert('Vul de naam van de cursist in');
+                return;
+            }
+            
+            if (signaturePad && signaturePad.isEmpty()) {
+                alert('Handtekening is verplicht');
+                return;
+            }
+            
+            const checked = document.querySelectorAll('#criteriaChecks input:checked');
+            let score = 0;
+            checked.forEach(cb => {
+                score += parseInt(cb.dataset.points);
+            });
+            
+            const maxScore = currentOpdracht.maxScore;
+            const percentage = (score / maxScore) * 100;
+            let resultaat = 'herhalen';
+            if (percentage >= 85) resultaat = 'goed';
+            else if (percentage >= 70) resultaat = 'voldoende';
+            
+            const beoordeling = {
+                id: Date.now(),
+                datum: new Date().toLocaleString('nl-NL'),
+                instructeur: currentUser,
+                cursist: cursist,
+                opdracht: currentOpdracht.titel,
+                niveau: currentOpdracht.niveau,
+                score: score,
+                maxScore: maxScore,
+                percentage: percentage.toFixed(1),
+                resultaat: resultaat,
+                opmerkingen: document.getElementById('opmerkingen').value,
+                foto: document.getElementById('photoPreview').src || null,
+                handtekening: signaturePad.toDataURL()
+            };
+            
+            beoordelingen.push(beoordeling);
+            localStorage.setItem('beoordelingen', JSON.stringify(beoordelingen));
+            
+            alert(`Beoordeling opgeslagen!\nScore: ${score}/${maxScore} (${percentage}%)\nResultaat: ${resultaat.toUpperCase()}`);
+            closeModal();
+        }
+
+        function showResultaten() {
+            document.getElementById('opdrachtenGrid').classList.add('hidden');
+            document.getElementById('resultatenView').classList.remove('hidden');
+            
+            // Update tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const lijst = document.getElementById('resultatenLijst');
+            lijst.innerHTML = '';
+            
+            if (beoordelingen.length === 0) {
+                lijst.innerHTML = '<p class="text-center" style="padding: 2rem; color: #64748b;">Nog geen beoordelingen opgeslagen</p>';
+                return;
+            }
+            
+            // Sorteer nieuwste eerst
+            const sorted = [...beoordelingen].reverse();
+            
+            sorted.forEach(b => {
+                const item = document.createElement('div');
+                item.className = 'resultaat-item';
+                item.innerHTML = `
+                    <div class="resultaat-info">
+                        <h4>${b.cursist}</h4>
+                        <div class="resultaat-meta">
+                            ${b.opdracht} • ${b.datum} • Instructeur: ${b.instructeur}
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span class="score-badge score-${b.resultaat}">
+                            ${b.score}/${b.maxScore}
+                        </span>
+                        <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem;">
+                            ${b.percentage}%
+                        </div>
+                    </div>
+                `;
+                lijst.appendChild(item);
+            });
+        }
+
+        function exportData() {
+            if (beoordelingen.length === 0) {
+                alert('Geen data om te exporteren');
+                return;
+            }
+            
+            // CSV Export
+            const headers = ['Datum', 'Instructeur', 'Cursist', 'Opdracht', 'Niveau', 'Score', 'Max', 'Percentage', 'Resultaat', 'Opmerkingen'];
+            const rows = beoordelingen.map(b => [
+                b.datum,
+                b.instructeur,
+                b.cursist,
+                b.opdracht,
+                b.niveau,
+                b.score,
+                b.maxScore,
+                b.percentage + '%',
+                b.resultaat,
+                `"${(b.opmerkingen || '').replace(/"/g, '""')}"`
+            ]);
+            
+            const csv = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `heftruck_beoordelingen_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            
+            alert('Data geëxporteerd! Je kunt dit bestand openen in Excel.');
+        }
+
+        // QR Code scanner check (voor als er een opdracht ID in URL staat)
+        const urlParams = new URLSearchParams(window.location.search);
+        const opdrachtId = urlParams.get('opdracht');
+        if (opdrachtId) {
+            const opdracht = opdrachten.find(o => o.id == opdrachtId);
+            if (opdracht) {
+                openModal(opdracht);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,2440 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leentjuh - Jouw Virtuele Instructeur</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Linker paneel - Leentjuh */
+        .instructor-panel {
+            width: 40%;
+            background: linear-gradient(180deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            box-shadow: 5px 0 20px rgba(0,0,0,0.3);
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            height: 500px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            border: 3px solid rgba(255,255,255,0.1);
+        }
+
+        .avatar-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center top;
+        }
+
+        .avatar-glow {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: radial-gradient(circle, rgba(100,200,255,0.3) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+
+        .instructor-info {
+            margin-top: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .instructor-info h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #fff, #64c8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .instructor-info p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            font-style: italic;
+        }
+
+        .score-display {
+            margin-top: 20px;
+            background: rgba(255,255,255,0.1);
+            padding: 15px 30px;
+            border-radius: 50px;
+            border: 2px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .score-display .label {
+            color: #64c8ff;
+            font-weight: bold;
+        }
+
+        .score-display .score {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        /* Rechter paneel - Chat */
+        .chat-panel {
+            width: 60%;
+            display: flex;
+            flex-direction: column;
+            background: #f5f7fa;
+        }
+
+        .chat-header {
+            background: linear-gradient(90deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .chat-header-icon {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+        }
+
+        .chat-header h2 {
+            font-size: 1.3em;
+        }
+
+        .chat-header .subtitle {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 15px 20px;
+            border-radius: 20px;
+            animation: slideIn 0.3s ease-out;
+            position: relative;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.leentjuh {
+            align-self: flex-start;
+            background: white;
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #2a5298;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85em;
+            font-weight: bold;
+            color: #2a5298;
+        }
+
+        .message.user .message-header {
+            color: rgba(255,255,255,0.9);
+        }
+
+        .message-content {
+            line-height: 1.5;
+            font-size: 1em;
+        }
+
+        .question-image {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 10px;
+            margin: 10px 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .typing-indicator {
+            display: none;
+            align-self: flex-start;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 20px;
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+
+        .typing-indicator.active {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #2a5298;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .option-btn {
+            padding: 15px;
+            border: 2px solid #2a5298;
+            background: white;
+            color: #2a5298;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: #2a5298;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(42,82,152,0.3);
+        }
+
+        .option-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .option-btn.correct {
+            background: #4caf50;
+            border-color: #4caf50;
+            color: white;
+        }
+
+        .option-btn.wrong {
+            background: #f44336;
+            border-color: #f44336;
+            color: white;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .feedback.correct {
+            background: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid #4caf50;
+            color: #2e7d32;
+        }
+
+        .feedback.wrong {
+            background: rgba(244, 67, 54, 0.1);
+            border-left: 4px solid #f44336;
+            color: #c62828;
+        }
+
+        .start-btn, .next-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+            display: inline-block;
+        }
+
+        .start-btn:hover, .next-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102,126,234,0.6);
+        }
+
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #64c8ff, #fff);
+            transition: width 0.5s ease;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+            .instructor-panel {
+                width: 100%;
+                height: 40vh;
+                min-height: 300px;
+            }
+            .avatar-container {
+                height: 200px;
+                max-width: 200px;
+            }
+            .chat-panel {
+                width: 100%;
+                height: 60vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Linker paneel: Leentjuh -->
+        <div class="instructor-panel">
+            <div class="avatar-container">
+                <div class="avatar-glow"></div>
+                <img src="Leentjuh.png">
+            </div>
+            
+            <div class="instructor-info">
+                <h1>Leentjuh</h1>
+                <p>Jouw Virtuele Transportinstructeur</p>
+                
+                <div class="score-display">
+                    <span class="label">SCORE:</span>
+                    <span class="score" id="scoreDisplay">0 / 0</span>
+                </div>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Rechter paneel: Chat Interface -->
+        <div class="chat-panel">
+            <div class="chat-header">
+                <div class="chat-header-icon">🎓</div>
+                <div>
+                    <h2>Interne Transportmiddelen Oefenexamen</h2>
+                    <div class="subtitle">Leer interactief met Leentjuh</div>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <!-- Typing indicator -->
+                <div class="typing-indicator" id="typingIndicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Quiz Data - Interne Transportmiddelen en Veiligheid vragen
+        const quizData = [
+            {
+                id: 1,
+                question: "Waar staat de ARBO-wet voor?",
+                image: null,
+                options: [
+                    "Veiligheid, gezondheid en verkeer",
+                    "Veiligheid, gezondheid en werk",
+                    "Veiligheid, gezondheid en arbeidstijden",
+                    "Veiligheid, gezondheid en welzijn"
+                ],
+                correct: 3,
+                explanation: "De ARBO-wet oftewel de arbeidsomstandighedenwet staat voor VEILIGHEID, GEZONDHEID en WELZIJN op de werkvloer."
+            },
+            {
+                id: 2,
+                question: "Wat is de kern van de ARBO-wet?",
+                image: null,
+                options: [
+                    "Dat de Arbeidsinspectie verantwoordelijk is voor goede arbeidsomstandigheden op het werk",
+                    "Dat de werkgever en werknemer samen verantwoordelijk zijn voor goede arbeidsomstandigheden op het werk",
+                    "Dat de werkgever verantwoordelijk is voor goede arbeidsomstandigheden op het werk",
+                    "Dat de werknemer verantwoordelijk is voor goede arbeidsomstandigheden op het werk"
+                ],
+                correct: 1,
+                explanation: "Zowel werkgevers als werknemers zijn beide verantwoordelijk voor goede arbeidsomstandigheden op het werk en naleving van de ARBO-wet."
+            },
+            {
+                id: 3,
+                question: "Wie informeert, controleert en inspecteert op naleving van de ARBO-wet?",
+                image: null,
+                options: [
+                    "De politie",
+                    "De ARBO-arts",
+                    "Je leidinggevende",
+                    "De Arbeidsinspectie"
+                ],
+                correct: 3,
+                explanation: "De Nederlandse Arbeidsinspectie die valt onder het ministerie van Sociale Zaken en Werkgelegenheid informeert, controleert en inspecteert werknemers en werkgevers op naleving van de ARBO-wet."
+            },
+            {
+                id: 4,
+                question: "Wie is er verantwoordelijk als de arbeidsinspecteur een overtreding constateert?",
+                image: null,
+                options: [
+                    "De werkgever en de werknemer",
+                    "Alleen de werkgever",
+                    "Alleen de werknemer",
+                    "Alleen de leidinggevende"
+                ],
+                correct: 0,
+                explanation: "Zowel werkgever als werknemer kunnen verantwoordelijk gehouden worden bij overtreding van de ARBO-wet."
+            },
+            {
+                id: 5,
+                question: "Wat zijn de bevoegdheden van de Arbeidsinspectie?",
+                image: null,
+                options: [
+                    "Waarschuwen",
+                    "Het werk stil leggen",
+                    "Boete geven",
+                    "Alle antwoorden zijn juist"
+                ],
+                correct: 3,
+                explanation: "De arbeidsinspectie mag een waarschuwing geven, het werk stil leggen of een boete geven aan een werknemer of en een werkgever als zij in overtreding zijn."
+            },
+            {
+                id: 6,
+                question: "Wat zijn de wettelijke vereisten voor het besturen van een intern transportmiddel?",
+                options: [
+                    "14 jaar, een goede instructie en een AM-rijbewijs",
+                    "16 jaar, een goede instructie en een T1-rijbewijs",
+                    "18 jaar, een goede instructie en een goede lichamelijke en geestelijke gezondheid",
+                    "21 jaar, een goede instructie en een B-rijbewijs"
+                ],
+                correct: 2,
+                explanation: "Om zelfstandig een intern transportmiddel te mogen besturen moet je kunnen aantonen dat je goed bent geinstrueerd, minimaal 18 jaar oud bent en over een goede geestelijke en lichamelijke gezondheid beschikt."
+            },
+            {
+                id: 7,
+                question: "Hoe vaak moet een intern transportmiddel gekeurd worden?",
+                options: [
+                    "iedere 6 maanden",
+                    "Jaarlijks",
+                    "Om het jaar",
+                    "Iedere 2 jaar"
+                ],
+                correct: 1,
+                explanation: "Werkgevers zijn verplicht om ieder jaar hun interne transportmiddelen en machines te keuren en onderhouden."
+            },
+            {
+                id: 8,
+                question: "Hoe weet je of een intern transportmiddel of een machine voldoet aan de Machinerichtlijn?",
+                options: [
+                    "Dat kun je online opzoeken",
+                    "Dat kun je zien aan de CE-markering",
+                    "Dat kun je zien aan de keuringssticker",
+                    "Dat kun je nooit zeker weten"
+                ],
+                correct: 1,
+                explanation: "Een fabrikant mag de markering aanbrengen op het product als deze voldoet aan de normen en eisen van de Europese Unie."
+            },
+            {
+                id: 9,
+                question: "Moet je als werknemer deelnemen aan een instructie of een voorlichting die de veiligheid bevordert?",
+                options: [
+                    "Alleen als je een leidinggevende functie hebt",
+                    "Alleen als je geen smoes hebt",
+                    "Nee, dat hoeft niet",
+                    "Ja, iedereen is hiertoe verplicht"
+                ],
+                correct: 3,
+                explanation: "Werknemers zullen deel moeten nemen aan veiligheidsvoorlichtingen en -instructies die zijn georganiseerd door de werkgever."
+            },
+            {
+                id: 10,
+                question: "Kan een werkgever je verplichten om door te werken nadat je een gevaarlijke situatie hebt geconstateerd?",
+                options: [
+                    "Ja, het is je werkgever en werkgerelateerde opdrachten moet je uitvoeren",
+                    "Ja, het is je werkgever en die draagt de verantwoordelijkheid",
+                    "Nee, dat kan en mag de werkgever niet doen",
+                    "Ja, iedereen is hiertoe verplicht"
+                ],
+                correct: 2,
+                explanation: "Het is raadzaam om in dit soort gevallen bijstand te zoeken bij je collega's, andere leidinggevenden of desnoods uiteindelijk zelf bij de arbeidsinspectie aan de bel te trekken als er niemand is die het probleem serieus wil nemen."
+            },
+            {
+                id: 11,
+                question: "Wat is een Risico Inventarisatie & Evaluatie? (RI&E)",
+                options: [
+                    "Een maandelijkse toolbox over veiligheid",
+                    "Een jaarlijks Risico- en Veiligheidsbeurs in Utrecht",
+                    "Een lange lijst met dingen waarvan jij denkt dat ze je werk uitdagender maken",
+                    "Het ARBO-beleid van een bedrijf en hoe om te gaan met risico's"
+                ],
+                correct: 3,
+                explanation: "Een gedetailleerde beschrijving van de mate van waarschijnlijkheid (het risico) dat bepaalde ongewenste effecten binnen het bedrijf zullen plaatsvinden en hoe daar mee om te gaan als het ooit echt gebeurd."
+            },
+            {
+                id: 12,
+                question: "Wat moet je doen voordat je gaat werken met interne transportmiddelen?",
+                options: [
+                    "Je status updaten op je socials",
+                    "De omgeving inspecteren en de interne transportmiddelen controleren",
+                    "Collega's waarschuwen dat je zo met de heftruck gaat rijden",
+                    "Een RI&E opstellen"
+                ],
+                correct: 1,
+                explanation: "Omgeving inspecteren op obstakels en personen. De interne transportmiddelen controleer je op schades, lekkages en werking van de functie's."
+            },
+            {
+                id: 13,
+                question: "Hoe noem je de stuurstang waarmee een een pompwagen, een EPT of een stapelaar bediend?",
+                options: [
+                    "Stuurdissel",
+                    "Hefboom",
+                    "Pompstuur",
+                    "Disselstang"
+                ],
+                correct: 0,
+                explanation: "De stuurdissel is zowel links- als rechtshandig te besturen maar bij voorkeur met je rechterhand omdat je er dan links naastloopt."
+            },
+            {
+                id: 14,
+                question: "Waar zit het draaipunt van een EPT?",
+                options: [
+                    "Bij het stuurwiel",
+                    "Bij het linker voorwiel",
+                    "Bij het rechter voorwiel",
+                    "In het midden van de voorwielen"
+                ],
+                correct: 3,
+                explanation: "Het draaipunt van een EPT ligt tussen de voorwielen."
+            },
+            {
+                id: 15,
+                question: "Waarvoor dient de gele of rode knop bovenop de stuurdissel van een EPT of stapelaar?",
+                options: [
+                    "Dat is de noodstopknop",
+                    "Dat is de dodemansknop",
+                    "Een noodknop die ervoor zorgt dat je jezelf niet klem kan rijden",
+                    "Daarmee kan je de snelheid veranderen"
+                ],
+                correct: 2,
+                explanation: "Als de knop word ingedrukt dan rijd de machine van je af zodat je niet vast kan komen te zitten tussen het apparaat en de muur of een stelling."
+            },
+            {
+                id: 16,
+                question: "Met welke intern(e) transportmiddel(en) kun je alleen op de begane grond werken?",
+                options: [
+                    "De EPT en de stapelaar",
+                    "De pompwagen en de EPT",
+                    "De stapelaar en de heftruck",
+                    "Alleen met de reachtruck"
+                ],
+                correct: 1,
+                explanation: "Met de pompwagen en EPT verplaats je pallets over de vloer, met een stapelaar, een heftruck en een reachtruck kun je pallets in stellingen plaatsen"
+            },
+            {
+                id: 17,
+                question: "Waar moet je bij het gebruik van een stapelaar goed op letten?",
+                options: [
+                    "Dat de stabiliteit afneemt naarmate het gewicht en de werkhoogte toenemen",
+                    "Dat de bandenspanning van alle wielen gelijk is",
+                    "Dat je een lading altijd in de breedte op moet pakken",
+                    "Dat je een stapelaar altijd in de hoek parkeert met de vorken helemaal omhoog"
+                ],
+                correct: 0,
+                explanation: "Zet een stapelaar altijd recht voor een stelling en haal de pallet eerst naar beneden voordat je gaat draaien en rijden."
+            },
+            {
+                id: 18,
+                question: "Wat is het grootste verschil tussen een heftruck en een reachtruck?",
+                options: [
+                    "Een heftruck is sneller",
+                    "Een reachtruck heeft een in- en uitschuifbare mast",
+                    "Een heftruck kan meer gewicht tillen",
+                    "Een reachtruck is meer geschikt voor ruw terrein"
+                ],
+                correct: 1,
+                explanation: "Een reachtruck heeft een in- en uitschuifbare mast waarmee hij gemakkelijk tussen de stellingen kan manoeuvreren."
+            },
+            {
+                id: 19,
+                question: "Welke soort aandrijving kun je het beste gebruiken als je in de voedingsmiddelenindustrie werkt?",
+                options: [
+                    "Een dieselmotor",
+                    "Een heftruck op aardgas",
+                    "Een elektromotor",
+                    "Een hybride motor"
+                ],
+                correct: 2,
+                explanation: "Een elektromotor stoot geen uitlaatgassen uit en is daardoor bij uitstek geschikt om te gebruiken in de voedingsmiddelenindustrie."
+            },
+            {
+                id: 20,
+                question: "Wat is het voordeel van een elektromotor?",
+                options: [
+                    "Stroom is goedkoper dan brandstof",
+                    "Een elektromotor hoeft niet ieder jaar gekeurd te worden",
+                    "Dat je geen aparte accu meer nodig hebt voor je verlichting en claxon",
+                    "Geen schadelijke uitstoot"
+                ],
+                correct: 3,
+                explanation: "Het grote voordeel is dat de elektromotor geen schadelijke uitstoot heeft en dus binnen te gebruiken is."
+            },
+            {
+                id: 21,
+                question: "Wat betekent PBM?",
+                options: [
+                    "",
+                    "Persoonlijke Beschermings Middelen",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 22,
+                question: "Wie moet de PBM's aanschaffen?",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 23,
+                question: "Welk PBM is verplicht bij het gebruik van interne transportmiddelen?",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 24,
+                question: "Waar moet je goed op letten bij het opladen van een accu?",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 25,
+                question: "Het tanken van diesel en gas doe je altijd?",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 26,
+                question: "Wat zijn de afmetingen van een Euro pallet?",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 27,
+                question: "Wat is het verschil tussen een 2-wegpallet en een 4-wegpallet?",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 28,
+                question: "Watvoor een stelling gebruik je als je een gewone europallet wil wegzetten?",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 29,
+                question: "Hoe noem je de kaart die op elke stelling hoort te zitten?",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 30,
+                question: "Wat is voorzetapparatuur?",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 31,
+                question: "Wat is het nadeel van het gebruik van voorzetapparatuur?",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 32,
+                question: "Wat moet er op het typeplaatje van een machine staan?",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 33,
+                question: "Wat is een lastdiagram?",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 34,
+                question: "Wat is het lastzwaartepunt?",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 35,
+                question: "Wat gebeurd er als je een pallet niet helemaal op de vorken neemt?",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 36,
+                question: "Waarom moet met je vorken horizontaal de pallet inrijden?",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 37,
+                question: "Hoe neem je een bocht met de heftruck?",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 38,
+                question: "Welke hand gebruik je om te sturen?",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 39,
+                question: "Hoe parkeer je een heftruck?",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 40,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 41,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 42,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 43,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 44,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 45,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 46,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 47,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 48,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 49,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 50,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 51,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 52,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 53,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 54,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 55,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 56,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 57,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 58,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 59,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 60,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 61,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 62,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 63,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 64,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 65,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 66,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 67,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 68,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 69,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 70,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 71,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 72,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 73,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 74,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 75,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 76,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 77,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 78,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 79,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 80,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 81,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 82,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 83,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 84,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 85,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 86,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 87,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 88,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 89,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 90,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 91,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 92,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 93,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 94,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 95,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 96,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 97,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 98,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 99,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 100,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 101,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 102,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 103,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 104,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 105,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 106,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 107,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 108,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 109,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 110,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 111,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 112,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 113,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 114,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 115,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 116,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 117,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 118,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 119,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 120,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 121,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 122,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 123,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 124,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 125,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 126,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 127,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 128,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 129,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 130,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 131,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 132,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 133,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 134,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 135,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 136,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 137,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 138,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 139,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 140,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 141,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 142,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 143,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 144,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 145,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 146,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 147,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 148,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 149,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            },
+            {
+                id: 150,
+                question: "",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                correct: 3,
+                explanation: ""
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = false;
+
+        const chatMessages = document.getElementById('chatMessages');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const progressBar = document.getElementById('progressBar');
+
+        function showTyping() {
+            typingIndicator.classList.add('active');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTyping() {
+            typingIndicator.classList.remove('active');
+        }
+
+        function addMessage(text, sender = 'leentjuh', options = null, image = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const header = document.createElement('div');
+            header.className = 'message-header';
+            header.innerHTML = sender === 'leentjuh' ? '👨‍🏫 Leentjuh' : '👤 Jij';
+            messageDiv.appendChild(header);
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            content.innerHTML = text;
+            
+            if (image) {
+                const img = document.createElement('img');
+                img.src = image;
+                img.className = 'question-image';
+                img.alt = 'Vraag afbeelding';
+                content.appendChild(img);
+            }
+            
+            messageDiv.appendChild(content);
+
+            if (options) {
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'options-container';
+                options.forEach((option, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.textContent = option;
+                    btn.onclick = () => handleAnswer(index, optionsDiv);
+                    optionsDiv.appendChild(btn);
+                });
+                messageDiv.appendChild(optionsDiv);
+            }
+
+            chatMessages.insertBefore(messageDiv, typingIndicator);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            return messageDiv; // Return het message element voor verdere manipulatie
+        }
+
+        function handleAnswer(selectedIndex, optionsContainer) {
+            if (answered) return;
+            answered = true;
+
+            const buttons = optionsContainer.querySelectorAll('.option-btn');
+            const currentQ = quizData[currentQuestion];
+            const isCorrect = selectedIndex === currentQ.correct;
+
+            // Disable all buttons
+            buttons.forEach((btn, index) => {
+                btn.disabled = true;
+                if (index === currentQ.correct) {
+                    btn.classList.add('correct');
+                } else if (index === selectedIndex && !isCorrect) {
+                    btn.classList.add('wrong');
+                }
+            });
+
+            // Update score
+            if (isCorrect) score++;
+            scoreDisplay.textContent = `${score} / ${currentQuestion + 1}`;
+
+            // Show feedback
+            setTimeout(() => {
+                const feedbackDiv = document.createElement('div');
+                feedbackDiv.className = `feedback ${isCorrect ? 'correct' : 'wrong'}`;
+                feedbackDiv.innerHTML = isCorrect ? 
+                    `✅ <strong>Helemaal goed!</strong><br>${currentQ.explanation}` : 
+                    `❌ <strong>Jammer, dat is niet correct.</strong><br>Het juiste antwoord was: ${currentQ.options[currentQ.correct]}<br><br>${currentQ.explanation}`;
+                
+                // Zoek het laatste bericht van Leentjuh (het huidige vraagbericht)
+                const messages = chatMessages.querySelectorAll('.message.leentjuh');
+                const lastMessage = messages[messages.length - 1];
+                lastMessage.appendChild(feedbackDiv);
+
+                // Next button or end
+                setTimeout(() => {
+                    if (currentQuestion < quizData.length - 1) {
+                        const nextBtn = document.createElement('button');
+                        nextBtn.className = 'next-btn';
+                        nextBtn.textContent = 'Volgende vraag →';
+                        nextBtn.onclick = nextQuestion;
+                        lastMessage.appendChild(nextBtn);
+                    } else {
+                        showResults();
+                    }
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 500);
+            }, 500);
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            answered = false;
+            askQuestion();
+        }
+
+        function askQuestion() {
+            showTyping();
+            
+            setTimeout(() => {
+                hideTyping();
+                const q = quizData[currentQuestion];
+                const progress = ((currentQuestion + 1) / quizData.length) * 100;
+                progressBar.style.width = `${progress}%`;
+                
+                addMessage(
+                    `<strong>Vraag ${currentQuestion + 1} van ${quizData.length}</strong><br><br>${q.question}`,
+                    'leentjuh',
+                    q.options,
+                    q.image
+                );
+            }, 1000 + Math.random() * 1000);
+        }
+
+        function showResults() {
+            showTyping();
+            setTimeout(() => {
+                hideTyping();
+                const percentage = Math.round((score / quizData.length) * 100);
+                let message = '';
+                
+                if (percentage >= 80) {
+                    message = `🎉 <strong>Gefeliciteerd!</strong> Je hebt ${score} van de ${quizData.length} vragen goed beantwoord (${percentage}%).<br><br>Je bent klaar voor het echte examen!`;
+                } else if (percentage >= 60) {
+                    message = `👍 <strong>Goed gedaan!</strong> Je hebt ${score} van de ${quizData.length} vragen goed beantwoord (${percentage}%).<br><br>Je bent op de goede weg, maar oefen nog even verder.`;
+                } else {
+                    message = `📚 <strong>Goede poging!</strong> Je hebt ${score} van de ${quizData.length} vragen goed beantwoord (${percentage}%).<br><br>Bestudeer de stof nog eens goed en probeer het opnieuw.`;
+                }
+                
+                const msgDiv = addMessage(message, 'leentjuh');
+                
+                const restartBtn = document.createElement('button');
+                restartBtn.className = 'start-btn';
+                restartBtn.textContent = '🔄 Opnieuw beginnen';
+                restartBtn.onclick = restartQuiz;
+                msgDiv.appendChild(restartBtn);
+                
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 1500);
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            answered = false;
+            scoreDisplay.textContent = '0 / 0';
+            progressBar.style.width = '0%';
+            chatMessages.innerHTML = '';
+            chatMessages.appendChild(typingIndicator);
+            startQuiz();
+        }
+
+        function startQuiz() {
+            showTyping();
+            setTimeout(() => {
+                hideTyping();
+                const msgDiv = addMessage(
+                    `Hoi! Ik ben <strong>Leentjuh</strong>, jouw virtuele instructeur. 🎓<br><br>
+                    We gaan vandaag je kennis van Interne Transportmiddelen en Veiligheid testen. 
+                    Zodra jij op Start de Theorie klikt ga ik vragen stellen en geef ik je 4 antwoordmogelijkheden. 
+                    Klik op het juiste antwoord om door te kunnen gaan naar de volgende vraag. <br>Aan het einde van deze chat kunnen we aan de hand van je score zien of we nog een keer moeten oefenen of dat je klaar bent voor het echte examen.<br><br>
+                    Zet hem op en succes! 💪`,
+                    'leentjuh'
+                );
+                
+                // Direct de knop toevoegen aan het zojuist gemaakte bericht
+                const startBtn = document.createElement('button');
+                startBtn.className = 'start-btn';
+                startBtn.textContent = '🚀 Start de Theorie';
+                startBtn.onclick = function() {
+                    this.remove(); // Verwijder de knop
+                    askQuestion(); // Start de eerste vraag
+                };
+                
+                msgDiv.appendChild(startBtn);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 1500);
+        }
+
+        // Start de applicatie zodra de pagina geladen is
+        window.addEventListener('DOMContentLoaded', startQuiz);
+    </script>
+</body>
+</html>

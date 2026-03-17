@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leen de Waal - Digitale Leeromgeving Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #ff6b00;
+            --primary-dark: #e55a00;
+            --secondary: #1e3a8a;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--gray-800);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .prototype-banner {
+            background: rgba(17, 24, 39, 0.92);
+            color: white;
+            text-align: center;
+            padding: 12px 18px;
+            font-size: 0.95rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(8px);
+            position: sticky;
+            top: 0;
+            z-index: 3000;
+        }
+
+        .prototype-banner strong {
+            color: #ffd1a8;
+        }
+
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .auth-box {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            width: 100%;
+            max-width: 470px;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .auth-header {
+            background: var(--secondary);
+            color: white;
+            padding: 36px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.05) 10px,
+                rgba(255,255,255,0.05) 20px
+            );
+            animation: slide 20s linear infinite;
+        }
+
+        @keyframes slide {
+            0% { transform: translate(-50%, -50%); }
+            100% { transform: translate(0, 0); }
+        }
+
+        .auth-header h1,
+        .auth-header p { position: relative; z-index: 1; }
+
+        .auth-header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .auth-header p {
+            opacity: 0.92;
+        }
+
+        .auth-tabs {
+            display: flex;
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 18px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .auth-tab.active { color: var(--primary); }
+
+        .auth-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary);
+        }
+
+        .auth-form {
+            padding: 30px;
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .form-group { margin-bottom: 18px; }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--gray-200);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(255,107,0,0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255,107,0,0.35);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+        }
+
+        .btn-secondary:hover {
+            background: #152c5b;
+            box-shadow: 0 5px 20px rgba(30,58,138,0.35);
+        }
+
+        .app-container {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 49px;
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--secondary);
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.4rem;
+        }
+
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-user-info { text-align: right; }
+
+        .nav-user-name {
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .nav-user-role {
+            font-size: 0.85rem;
+            color: var(--gray-700);
+            opacity: 0.8;
+        }
+
+        .logout-btn {
+            background: var(--gray-100);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--gray-800);
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .dashboard {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 30px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--gray-800);
+            font-weight: 600;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background: var(--primary);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .menu-icon { font-size: 1.3rem; }
+
+        .main-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .page-header { margin-bottom: 30px; }
+
+        .page-header h2 {
+            font-size: 2rem;
+            color: var(--gray-900);
+            margin-bottom: 10px;
+        }
+
+        .page-header p { color: var(--gray-700); }
+
+        .context-card {
+            background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+            border: 1px solid #fdba74;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .context-card h3 {
+            color: #9a3412;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .context-card p {
+            color: #7c2d12;
+            line-height: 1.6;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card.blue { background: linear-gradient(135deg, var(--secondary) 0%, #2d4a8c 100%); }
+        .stat-card.green { background: linear-gradient(135deg, var(--success) 0%, #059669 100%); }
+        .stat-card.yellow { background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%); }
+
+        .stat-value {
+            font-size: 2.4rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            opacity: 0.92;
+            font-size: 0.95rem;
+        }
+
+        .stat-icon {
+            position: absolute;
+            right: 18px;
+            top: 18px;
+            font-size: 2.8rem;
+            opacity: 0.22;
+        }
+
+        .section-title {
+            font-size: 1.45rem;
+            margin-bottom: 18px;
+            color: var(--gray-900);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .courses-grid, .ecosystem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 22px;
+        }
+
+        .course-card, .ecosystem-card {
+            background: white;
+            border: 2px solid var(--gray-200);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .course-card:hover, .ecosystem-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            border-color: var(--primary);
+        }
+
+        .course-header {
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            position: relative;
+            background: linear-gradient(135deg, var(--gray-800) 0%, var(--gray-900) 100%);
+        }
+
+        .course-header.ept { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+        .course-header.stapelaar { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .course-header.heftruck { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        .course-header.reachtruck { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
+        .course-header.vca { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .course-header.ehbo { background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); }
+        .course-header.bhv { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
+
+        .ecosystem-head {
+            padding: 22px 22px 16px;
+            background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+            color: white;
+        }
+
+        .ecosystem-head h3 {
+            margin-bottom: 8px;
+            font-size: 1.15rem;
+        }
+
+        .ecosystem-head span {
+            display: inline-block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.16);
+        }
+
+        .ecosystem-body {
+            padding: 20px 22px 22px;
+        }
+
+        .ecosystem-body p {
+            color: var(--gray-700);
+            margin-bottom: 14px;
+            line-height: 1.6;
+        }
+
+        .mini-points {
+            list-style: none;
+            display: grid;
+            gap: 8px;
+            color: var(--gray-800);
+            font-size: 0.94rem;
+        }
+
+        .mini-points li::before {
+            content: '•';
+            color: var(--primary);
+            font-weight: 900;
+            margin-right: 8px;
+        }
+
+        .course-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.92);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .course-body { padding: 20px; }
+
+        .course-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--gray-900);
+        }
+
+        .course-meta {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: var(--gray-700);
+            flex-wrap: wrap;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--gray-200);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            font-size: 0.85rem;
+            color: var(--gray-700);
+            font-weight: 600;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            max-width: 940px;
+            margin: 50px auto;
+            border-radius: 20px;
+            overflow: hidden;
+            animation: slideUp 0.3s;
+        }
+
+        .modal-header {
+            background: var(--secondary);
+            color: white;
+            padding: 30px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .close-modal:hover {
+            background: rgba(255,255,255,0.3);
+            transform: rotate(90deg);
+        }
+
+        .modal-body { padding: 30px; }
+
+        .module-list { list-style: none; }
+
+        .module-item {
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .module-header {
+            padding: 20px;
+            background: var(--gray-100);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            gap: 15px;
+        }
+
+        .module-header:hover { background: #e5e7eb; }
+
+        .module-title {
+            font-weight: 700;
+            color: var(--gray-900);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .module-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .status-completed { background: #d1fae5; color: #065f46; }
+        .status-pending { background: #fee2e2; color: #991b1b; }
+        .status-progress { background: #dbeafe; color: #1e40af; }
+
+        .quiz-container {
+            background: #f8fafc;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .quiz-question {
+            font-size: 1.16rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--gray-900);
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .quiz-option {
+            padding: 15px;
+            background: white;
+            border: 2px solid var(--gray-200);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quiz-option:hover {
+            border-color: var(--primary);
+            background: #fff7ed;
+        }
+
+        .quiz-option.selected {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        .quiz-option.correct {
+            border-color: var(--success);
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .quiz-option.wrong {
+            border-color: var(--danger);
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .btn-next {
+            margin-top: 20px;
+            width: auto;
+            padding: 12px 30px;
+        }
+
+        .certificate-card {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            margin-top: 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3);
+        }
+
+        .certificate-card::before {
+            content: '🏆';
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 4rem;
+            opacity: 0.3;
+        }
+
+        .certificate-title {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .hidden { display: none !important; }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 30px 0;
+            display: none;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 968px) {
+            .dashboard { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .navbar { top: 49px; }
+        }
+
+        @media (max-width: 640px) {
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .nav-user {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .main-content, .sidebar { padding: 22px; }
+            .dashboard { padding: 20px; gap: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="prototype-banner">
+        <strong>Prototype leeromgeving – ontwikkeld om interne mogelijkheden te verkennen.
+    </div>
+
+    <div class="auth-container" id="authContainer">
+        <div class="auth-box">
+            <div class="auth-header">
+                <h1>🚧 Leen de Waal 🚧</h1>
+                <p>Digitale leeromgeving voor intern transport, praktijk en toetsing</p>
+            </div>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchTab(event, 'login')">Inloggen</button>
+                <button class="auth-tab" onclick="switchTab(event, 'register')">Registreren</button>
+            </div>
+
+            <div id="alertBox" class="alert"></div>
+
+            <form class="auth-form active" id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>E-mailadres</label>
+                    <input type="email" id="loginEmail" required placeholder="naam@bedrijf.nl">
+                </div>
+                <div class="form-group">
+                    <label>Wachtwoord</label>
+                    <input type="password" id="loginPassword" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn" id="loginBtn">Inloggen</button>
+                <p style="margin-top: 15px; text-align: center; font-size: 0.9rem; color: #666;">
+                    Demo account (simulatie): demo@safedrive.nl / demo123
+                </p>
+            </form>
+
+            <form class="auth-form" id="registerForm" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label>Volledige naam</label>
+                    <input type="text" id="regName" required placeholder="Jan Jansen">
+                </div>
+                <div class="form-group">
+                    <label>E-mailadres</label>
+                    <input type="email" id="regEmail" required placeholder="naam@bedrijf.nl">
+                </div>
+                <div class="form-group">
+                    <label>Bedrijf</label>
+                    <input type="text" id="regCompany" placeholder="Bedrijfsnaam (optioneel)">
+                </div>
+                <div class="form-group">
+                    <label>Wachtwoord</label>
+                    <input type="password" id="regPassword" required placeholder="Minimaal 8 tekens" minlength="8">
+                </div>
+                <button type="submit" class="btn btn-secondary" id="registerBtn">Account aanmaken</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="app-container" id="appContainer">
+        <nav class="navbar">
+            <div class="logo">
+                <div class="logo-icon">🚧</div>
+                <span>Digitale Leeromgeving Demo</span>
+            </div>
+            <div class="nav-user">
+                <div class="nav-user-info">
+                    <div class="nav-user-name" id="userNameDisplay">Gebruiker</div>
+                    <div class="nav-user-role" id="userRoleDisplay">Cursist</div>
+                </div>
+                <button class="logout-btn" onclick="logout()">Uitloggen</button>
+            </div>
+        </nav>
+
+        <div class="dashboard">
+            <aside class="sidebar">
+                <div class="menu-item active" onclick="showPage('dashboard')">
+                    <span class="menu-icon">📊</span>
+                    <span>Dashboard</span>
+                </div>
+                <div class="menu-item" onclick="showPage('courses')">
+                    <span class="menu-icon">📚</span>
+                    <span>Leeromgeving</span>
+                </div>
+                <div class="menu-item" onclick="showPage('ecosystem')">
+                    <span class="menu-icon">🧩</span>
+                    <span>Systeemuitbreidingen</span>
+                </div>
+                <div class="menu-item" onclick="showPage('certificates')">
+                    <span class="menu-icon">🏆</span>
+                    <span>Certificaten</span>
+                </div>
+                <div class="menu-item" onclick="showPage('profile')">
+                    <span class="menu-icon">👤</span>
+                    <span>Profiel</span>
+                </div>
+            </aside>
+
+            <main class="main-content" id="mainContent"></main>
+        </div>
+    </div>
+
+    <div class="modal" id="courseModal">
+        <div class="modal-content">
+            <div class="modal-header" id="modalHeader">
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+                <h2 id="modalTitle">Cursus Titel</h2>
+                <p id="modalSubtitle">Ondertitel</p>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        const store = {
+            currentUser: null,
+            courses: [
+                {
+                    id: 'ept',
+                    title: 'EPT (Elektrische Pallet Truck)',
+                    category: 'Intern Transport',
+                    icon: '🚚',
+                    duration: '2-4 uur',
+                    level: 'Beginner',
+                    color: 'ept',
+                    description: 'Leer veilig werken met de Elektrische Pallet Truck (EPT). Theorie en praktijk voor het transport van goederen op pallets.',
+                    modules: [
+                        { id: 1, title: 'Introductie EPT', duration: '15 min', completed: true },
+                        { id: 2, title: 'Veiligheidsvoorschriften', duration: '20 min', completed: true },
+                        { id: 3, title: 'Bediening en Controls', duration: '25 min', completed: false },
+                        { id: 4, title: 'Manoeuvreren en Stapelen', duration: '30 min', completed: false },
+                        { id: 5, title: 'Onderhoud en Controle', duration: '15 min', completed: false }
+                    ],
+                    quiz: [
+                        {
+                            question: 'Wat is de maximale snelheid voor een EPT binnenshuis?',
+                            options: ['6 km/u', '10 km/u', '15 km/u', '20 km/u'],
+                            correct: 0
+                        },
+                        {
+                            question: 'Wanneer moet je een EPT dagelijks controleren?',
+                            options: ['Voor het eerste gebruik', 'Na het werk', 'Eén keer per week', 'Alleen bij storingen'],
+                            correct: 0
+                        },
+                        {
+                            question: 'Welke persoonlijke beschermingsmiddelen zijn verplicht bij EPT gebruik?',
+                            options: ['Veiligheidsschoenen', 'Handschoenen', 'Gehoorbescherming', 'Veiligheidsbril'],
+                            correct: 0
+                        }
+                    ]
+                },
+                {
+                    id: 'stapelaar',
+                    title: 'Stapelaar',
+                    category: 'Intern Transport',
+                    icon: '📦',
+                    duration: '4-6 uur',
+                    level: 'Gevorderd',
+                    color: 'stapelaar',
+                    description: 'Complete training voor het veilig bedienen van handgestuurde en elektrische stapelaars in magazijnomgevingen.',
+                    modules: [
+                        { id: 1, title: 'Soorten Stapelaars', duration: '20 min', completed: false },
+                        { id: 2, title: 'Wetgeving en Certificering', duration: '25 min', completed: false },
+                        { id: 3, title: 'Laden en Lossen', duration: '30 min', completed: false },
+                        { id: 4, title: 'Werken op Hoogte', duration: '35 min', completed: false },
+                        { id: 5, title: 'Belading en Zwaartepunt', duration: '30 min', completed: false }
+                    ],
+                    quiz: [
+                        {
+                            question: 'Wat is het belangrijkste verschil tussen een EPT en een stapelaar?',
+                            options: ['Een stapelaar kan tillen', 'Een stapelaar is sneller', 'Een stapelaar is elektrisch', 'Er is geen verschil'],
+                            correct: 0
+                        }
+                    ]
+                },
+                {
+                    id: 'heftruck',
+                    title: 'Heftruckcertificaat',
+                    category: 'Intern Transport',
+                    icon: '🏭',
+                    duration: '1-2 dagen',
+                    level: 'Professioneel',
+                    color: 'heftruck',
+                    description: 'Officiële heftruckcertificering volgens laatste ARBO normen. Inclusief theorie-examen en praktijktoets.',
+                    modules: [
+                        { id: 1, title: 'Heftruck Typen', duration: '30 min', completed: false },
+                        { id: 2, title: 'Wetgeving (Arbowet)', duration: '45 min', completed: false },
+                        { id: 3, title: 'Techniek en Werking', duration: '40 min', completed: false },
+                        { id: 4, title: 'Veilig Rijgedrag', duration: '50 min', completed: false },
+                        { id: 5, title: 'Lasten en Hijsen', duration: '45 min', completed: false },
+                        { id: 6, title: 'Keuring en Onderhoud', duration: '30 min', completed: false }
+                    ],
+                    quiz: [
+                        {
+                            question: 'Hoe vaak moet een heftruck periodiek worden gekeurd?',
+                            options: ['Jaarlijks', 'Per kwartaal', 'Per maand', 'Wekelijks'],
+                            correct: 0
+                        }
+                    ]
+                },
+                {
+                    id: 'reachtruck',
+                    title: 'Reachtruck',
+                    category: 'Intern Transport',
+                    icon: '🎯',
+                    duration: '4-8 uur',
+                    level: 'Specialist',
+                    color: 'reachtruck',
+                    description: 'Specialistische training voor reachtrucks in hoge magazijnen. Focus op werken op hoogte en nauwkeurig stapelen.',
+                    modules: [
+                        { id: 1, title: 'Reachtruck Specificaties', duration: '25 min', completed: false },
+                        { id: 2, title: 'Hoge Magazijnen', duration: '35 min', completed: false },
+                        { id: 3, title: 'Vrijheidsgraden', duration: '40 min', completed: false },
+                        { id: 4, title: 'Nauwkeurig Positioneren', duration: '45 min', completed: false }
+                    ],
+                    quiz: []
+                },
+                {
+                    id: 'vca',
+                    title: 'VCA Basis',
+                    category: 'Veiligheid',
+                    icon: '⚠️',
+                    duration: '1 dag',
+                    level: 'Verplicht',
+                    color: 'vca',
+                    description: 'Veiligheids certificaat Aannemers (VCA) voor werken in risicovolle omgevingen. De standaard voor industrie en bouw.',
+                    modules: [
+                        { id: 1, title: 'Wet- en Regelgeving', duration: '45 min', completed: false },
+                        { id: 2, title: 'Gevaarlijke Stoffen', duration: '40 min', completed: false },
+                        { id: 3, title: 'Brand en Explosie', duration: '35 min', completed: false },
+                        { id: 4, title: 'Persoonlijke Bescherming', duration: '30 min', completed: false },
+                        { id: 5, title: 'Noodprocedures', duration: '30 min', completed: false }
+                    ],
+                    quiz: [
+                        {
+                            question: 'Wat betekent VCA?',
+                            options: ['Veiligheid Checklist Aannemers', 'Veiligheid Certificaat Aannemers', 'Veiligheids Code Arbeid', 'Veilig Controleren Altijd'],
+                            correct: 1
+                        }
+                    ]
+                },
+                {
+                    id: 'ehbo',
+                    title: 'EHBO Bedrijf',
+                    category: 'Veiligheid',
+                    icon: '🚑',
+                    duration: '2 dagen',
+                    level: 'Essentieel',
+                    color: 'ehbo',
+                    description: 'Eerste Hulp Bij Ongevallen specifiek voor de werkvloer. Leer reanimeren, verbanden aanleggen en stabiele zijligging.',
+                    modules: [
+                        { id: 1, title: 'Levensreddend Handelen', duration: '60 min', completed: false },
+                        { id: 2, title: 'Reanimatie', duration: '45 min', completed: false },
+                        { id: 3, title: 'Verbanden en Wondverzorging', duration: '50 min', completed: false },
+                        { id: 4, title: 'Bewusteloosheid', duration: '40 min', completed: false },
+                        { id: 5, title: 'Brandwonden en Amputaties', duration: '45 min', completed: false }
+                    ],
+                    quiz: []
+                },
+                {
+                    id: 'bhv',
+                    title: 'BHV (Bedrijfshulpverlening)',
+                    category: 'Veiligheid',
+                    icon: '🆘',
+                    duration: '1 dag',
+                    level: 'Verplicht',
+                    color: 'bhv',
+                    description: 'Wordt Bedrijfshulpverlener. Leer evacueren, brandbestrijding en eerste hulp verlenen bij ongevallen op werk.',
+                    modules: [
+                        { id: 1, title: 'Rol van de BHV-er', duration: '30 min', completed: false },
+                        { id: 2, title: 'Evacuatie', duration: '40 min', completed: false },
+                        { id: 3, title: 'Brandbestrijding', duration: '45 min', completed: false },
+                        { id: 4, title: 'Communicatie', duration: '25 min', completed: false }
+                    ],
+                    quiz: []
+                }
+            ],
+            ecosystem: [
+                {
+                    id: 'practice',
+                    title: 'Praktijkkaartensysteem',
+                    badge: 'Basisplatform',
+                    description: 'Gestructureerde oefeningen in modules die je kunt downloaden op je mobiel dmv QR-codes , voortgang, toetsing en voorbeeldcertificering voor verschillende opleidingen toepasbaar.',
+                    points: [
+                        'Modules en leerpaden',
+                        'Voortgang per gebruiker',
+                        'Scanbare QR-codes',
+                        'Demo van certificering'
+                    ]
+                },
+                {
+                    id: 'instructor',
+                    title: 'Virtual Instructor',
+                    badge: 'Chat / quizvorm',
+                    description: 'Interactieve instructeur die in vraag-en-antwoordvorm kennis activeert, antwoorden beoordeelt en direct feedback geeft.',
+                    points: [
+                        'Leren in chatvorm',
+                        'Directe feedback',
+						'Quiz- en examenvorm',
+                        'Inzetbaar als begeleidende instructie',
+                        'Geschikt voor oefen- en toetssituaties'
+                    ]
+                },
+                {
+                    id: 'lastdiagram',
+                    title: 'Lastdiagram tool',
+                    badge: 'Praktijkgericht toetsen',
+                    description: 'Tool waarmee op basis van lastdiagrammen en praktijksituaties automatisch vragen of oefencases kunnen worden gegenereerd.',
+                    points: [
+                        'Vraaggeneratie vanuit praktijkdata',
+                        'Toepasbaar voor examenvoorbereiding',
+                        'Ondersteunt vakinhoudelijke toetsing',
+                        'Brug tussen theorie en praktijk'
+                    ]
+                }
+            ],
+            userProgress: {}
+        };
+
+        function switchTab(event, tab) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById(tab + 'Form').classList.add('active');
+            hideAlert();
+        }
+
+        function showAlert(message, type = 'error') {
+            const alert = document.getElementById('alertBox');
+            alert.className = 'alert alert-' + type;
+            alert.textContent = message;
+            alert.style.display = 'block';
+            setTimeout(hideAlert, 5000);
+        }
+
+        function hideAlert() {
+            document.getElementById('alertBox').style.display = 'none';
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const btn = document.getElementById('loginBtn');
+            btn.innerHTML = '<span class="loading"></span>';
+
+            setTimeout(() => {
+                if ((email === 'demo@safedrive.nl' && password === 'demo123') || (localStorage.getItem('user_' + email))) {
+                    const userData = JSON.parse(localStorage.getItem('user_' + email) || '{"name": "Demo Gebruiker", "email": "demo@safedrive.nl", "role": "Cursist"}');
+                    store.currentUser = userData;
+                    localStorage.setItem('lastUser', email);
+                    loadUserData();
+                    showApp();
+                } else {
+                    showAlert('Ongeldige inloggegevens. Probeer demo@safedrive.nl / demo123');
+                }
+                btn.innerHTML = 'Inloggen';
+            }, 700);
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const btn = document.getElementById('registerBtn');
+            btn.innerHTML = '<span class="loading"></span>';
+
+            setTimeout(() => {
+                const userData = {
+                    name: name,
+                    email: email,
+                    company: document.getElementById('regCompany').value,
+                    role: 'Cursist',
+                    registeredAt: new Date().toISOString()
+                };
+                localStorage.setItem('user_' + email, JSON.stringify(userData));
+                localStorage.setItem('lastUser', email);
+                store.currentUser = userData;
+                if (!localStorage.getItem('progress_' + email)) {
+                    localStorage.setItem('progress_' + email, JSON.stringify({}));
+                }
+                loadUserData();
+                showApp();
+            }, 700);
+        }
+
+        function loadUserData() {
+            if (!store.currentUser) return;
+            const saved = localStorage.getItem('progress_' + store.currentUser.email);
+            if (saved) {
+                store.userProgress = JSON.parse(saved);
+            }
+
+            Object.keys(store.userProgress).forEach(courseId => {
+                const course = store.courses.find(c => c.id === courseId);
+                if (course) {
+                    const progress = store.userProgress[courseId];
+                    course.modules.forEach(mod => {
+                        mod.completed = progress.completedModules && progress.completedModules.includes(mod.id);
+                    });
+                }
+            });
+
+            document.getElementById('userNameDisplay').textContent = store.currentUser.name;
+            document.getElementById('userRoleDisplay').textContent = store.currentUser.company || 'Demo omgeving';
+        }
+
+        function saveProgress() {
+            if (!store.currentUser) return;
+            const progress = {};
+            store.courses.forEach(course => {
+                progress[course.id] = {
+                    completedModules: course.modules.filter(m => m.completed).map(m => m.id),
+                    quizCompleted: false
+                };
+            });
+            localStorage.setItem('progress_' + store.currentUser.email, JSON.stringify(progress));
+        }
+
+        function showApp() {
+            document.getElementById('authContainer').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'block';
+            showPage('dashboard');
+        }
+
+        function logout() {
+            store.currentUser = null;
+            document.getElementById('appContainer').style.display = 'none';
+            document.getElementById('authContainer').style.display = 'flex';
+            document.getElementById('loginForm').reset();
+            document.getElementById('registerForm').reset();
+        }
+
+        function setActiveMenu(page) {
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            const menuMap = {
+                dashboard: 0,
+                courses: 1,
+                ecosystem: 2,
+                certificates: 3,
+                profile: 4
+            };
+            const menuItems = document.querySelectorAll('.menu-item');
+            if (menuItems[menuMap[page]]) menuItems[menuMap[page]].classList.add('active');
+        }
+
+        function showPage(page) {
+            const content = document.getElementById('mainContent');
+            setActiveMenu(page);
+            switch(page) {
+                case 'dashboard':
+                    renderDashboard(content);
+                    break;
+                case 'courses':
+                    renderCourses(content);
+                    break;
+                case 'ecosystem':
+                    renderEcosystem(content);
+                    break;
+                case 'certificates':
+                    renderCertificates(content);
+                    break;
+                case 'profile':
+                    renderProfile(content);
+                    break;
+                default:
+                    renderDashboard(content);
+            }
+        }
+
+        function renderDashboard(container) {
+            const totalCourses = store.courses.length;
+            const completedModules = store.courses.reduce((acc, c) => acc + c.modules.filter(m => m.completed).length, 0);
+            const totalModules = store.courses.reduce((acc, c) => acc + c.modules.length, 0);
+            const certificates = Math.floor(completedModules / 5);
+
+            container.innerHTML = `
+                <div class="page-header">
+                    <h2>Digitale leeromgeving als concept</h2>
+                    <p>Eén omgeving waarin theorie, begeleiding en praktijkgerichte toetsing samenkomen.</p>
+                </div>
+
+                <div class="context-card">
+                    <h3>Waarom dit relevant is</h3>
+                    <p>
+                        Dit is opgezet als demonstratie van een uitbreidbare leeromgeving. Niet alleen losse modules,
+                        maar een basis die aangevuld kan worden met chatbegeleiding en praktijkgerichte tools.
+                    </p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">${Math.round((completedModules/totalModules)*100)}%</div>
+                        <div class="stat-label">Voorbeeld voortgang</div>
+                        <div class="stat-icon">📈</div>
+                    </div>
+                    <div class="stat-card blue">
+                        <div class="stat-value">${completedModules}/${totalModules}</div>
+                        <div class="stat-label">Modules in demo</div>
+                        <div class="stat-icon">📚</div>
+                    </div>
+                    <div class="stat-card green">
+                        <div class="stat-value">3</div>
+                        <div class="stat-label">Kernonderdelen</div>
+                        <div class="stat-icon">🧩</div>
+                    </div>
+                    <div class="stat-card yellow">
+                        <div class="stat-value">${certificates}</div>
+                        <div class="stat-label">Voorbeeld certificaten</div>
+                        <div class="stat-icon">🏆</div>
+                    </div>
+                </div>
+
+                <h3 class="section-title">📖 Leeromgeving</h3>
+                <div class="courses-grid">
+                    ${store.courses.slice(0, 3).map(course => renderCourseCard(course)).join('')}
+                </div>
+
+                <div style="margin-top: 34px;">
+                    <h3 class="section-title">🧩 Toepassingen binnen dezelfde leeromgeving</h3>
+                    <div class="ecosystem-grid">
+                        ${store.ecosystem.map(item => renderEcosystemCard(item)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCourses(container) {
+            container.innerHTML = `
+                <div class="page-header">
+                    <h2>Leeromgeving</h2>
+                    <p>Voorbeeld van digitale leerlijnen met voortgang, modules en toetsing.</p>
+                </div>
+                <div class="courses-grid">
+                    ${store.courses.map(course => renderCourseCard(course)).join('')}
+                </div>
+            `;
+        }
+
+        function renderEcosystem(container) {
+            container.innerHTML = `
+                <div class="page-header">
+                    <h2>Systeemuitbreidingen</h2>
+                    <p>Geen losse projecten, maar onderdelen van één digitaal leerconcept.</p>
+                </div>
+
+                <div class="context-card">
+                    <h3>Één samenhangend systeem</h3>
+                    <p>
+                        De e-learning vormt de basis. De Virtual Instructor laat zien dat dezelfde leeromgeving ook in chat- en quizvorm kan begeleiden.
+                        De lastdiagram tool laat zien dat praktijkgerichte vraaggeneratie daar logisch op kan aansluiten.
+                    </p>
+                </div>
+
+                <div class="ecosystem-grid">
+                    ${store.ecosystem.map(item => renderEcosystemCard(item)).join('')}
+                </div>
+            `;
+        }
+
+        function renderEcosystemCard(item) {
+    let link = '#';
+
+    if (item.id === 'instructor') {
+        link = 'instructor.html';
+    } else if (item.id === 'lastdiagram') {
+        link = 'lastdiagram.html';
+    }
+	else if (item.id === 'practice') {
+    link = 'practice_cards.html';
+}
+
+    return `
+        <div class="ecosystem-card" onclick="openTool('${link}')">
+            <div class="ecosystem-head">
+                <h3>${item.title}</h3>
+                <span>${item.badge}</span>
+            </div>
+            <div class="ecosystem-body">
+                <p>${item.description}</p>
+                <ul class="mini-points">
+                    ${item.points.map(point => `<li>${point}</li>`).join('')}
+                </ul>
+            </div>
+        </div>
+    `;
+}
+
+        function renderCourseCard(course) {
+            const completed = course.modules.filter(m => m.completed).length;
+            const total = course.modules.length;
+            const progress = Math.round((completed / total) * 100);
+            return `
+                <div class="course-card" onclick="openCourse('${course.id}')">
+                    <div class="course-header ${course.color}">
+                        <span style="font-size: 4rem;">${course.icon}</span>
+                        ${progress === 100 ? '<span class="course-badge">✅ VOLTOOID</span>' : progress > 0 ? '<span class="course-badge">⏳ DEMO VOORTGANG</span>' : '<span class="course-badge">NIEUW</span>'}
+                    </div>
+                    <div class="course-body">
+                        <div class="course-title">${course.title}</div>
+                        <div class="course-meta">
+                            <span>⏱️ ${course.duration}</span>
+                            <span>📊 ${course.level}</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progress}%"></div>
+                        </div>
+                        <div class="progress-text">${completed}/${total} modules (${progress}%)</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openCourse(courseId) {
+            const course = store.courses.find(c => c.id === courseId);
+            if (!course) return;
+            document.getElementById('modalTitle').textContent = course.title;
+            document.getElementById('modalSubtitle').textContent = course.description;
+            const completed = course.modules.filter(m => m.completed).length;
+            const allCompleted = completed === course.modules.length;
+
+            let html = `
+                <div style="margin-bottom: 30px;">
+                    <div class="context-card" style="margin-bottom: 24px;">
+                        <h3>Voorbeeldweergave</h3>
+                        <p>Deze cursus laat zien hoe inhoud modulair aangeboden kan worden, met voortgang, toetsing en een vervolgstap naar certificering.</p>
+                    </div>
+                    <h3 style="margin-bottom: 15px;">📋 Modules (${completed}/${course.modules.length} voltooid)</h3>
+                    <ul class="module-list">
+            `;
+
+            course.modules.forEach((mod, idx) => {
+                const statusClass = mod.completed ? 'status-completed' : (idx === completed ? 'status-progress' : 'status-pending');
+                const statusText = mod.completed ? '✓ Voltooid' : (idx === completed ? '▶ Nu bezig' : '○ Vergrendeld');
+                html += `
+                    <li class="module-item">
+                        <div class="module-header" onclick="toggleModule(this)">
+                            <div class="module-title">
+                                <span>${mod.id}.</span> ${mod.title}
+                                <span style="font-weight: normal; opacity: 0.7; margin-left: 10px;">(${mod.duration})</span>
+                            </div>
+                            <span class="module-status ${statusClass}">${statusText}</span>
+                        </div>
+                        <div class="module-content hidden" style="padding: 20px; background: white;">
+                            ${idx === completed || mod.completed ? `
+                                <p style="margin-bottom: 15px; line-height: 1.6;">
+                                    In deze module leer je de basisbeginselen van ${mod.title.toLowerCase()}. Dit omvat theoretische kennis
+                                    en praktische toepassingen volgens de laatste veiligheidsnormen.
+                                </p>
+                                <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                    <strong>Leerdoelen:</strong>
+                                    <ul style="margin-left: 20px; margin-top: 10px;">
+                                        <li>Kennis van veiligheidsvoorschriften</li>
+                                        <li>Praktische vaardigheden toepassen</li>
+                                        <li>Risico's herkennen en voorkomen</li>
+                                    </ul>
+                                </div>
+                                ${!mod.completed ? `<button class="btn" onclick="completeModule('${courseId}', ${mod.id})" style="width: auto;">Markeer als voltooid ✓</button>` : '<span style="color: #10b981; font-weight: 600;">✓ Module voltooid</span>'}
+                            ` : '<p style="color: #6b7280;">Voltooi eerst de vorige modules om toegang te krijgen.</p>'}
+                        </div>
+                    </li>
+                `;
+            });
+
+            html += '</ul>';
+
+            if (allCompleted && course.quiz.length > 0) {
+                html += renderQuiz(course);
+            } else if (allCompleted) {
+                html += `
+                    <div class="certificate-card">
+                        <div class="certificate-title">🎉 Voorbeeld afgerond</div>
+                        <p>Alle modules zijn voltooid. Dit toont hoe certificering of afronding gekoppeld kan worden aan voortgang.</p>
+                        <button class="btn" onclick="showPage('certificates'); closeModal();" style="margin-top: 20px; width: auto;">Bekijk voorbeeld certificaat</button>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('courseModal').style.display = 'block';
+            const currentModule = document.querySelector('.status-progress');
+            if (currentModule) toggleModule(currentModule.parentElement);
+        }
+
+        function toggleModule(header) {
+            const content = header.nextElementSibling;
+            content.classList.toggle('hidden');
+        }
+
+        function completeModule(courseId, moduleId) {
+            const course = store.courses.find(c => c.id === courseId);
+            const module = course.modules.find(m => m.id === moduleId);
+            if (module) {
+                module.completed = true;
+                saveProgress();
+                openCourse(courseId);
+            }
+        }
+
+        function renderQuiz(course) {
+            return `
+                <div class="quiz-container">
+                    <h3 style="margin-bottom: 20px;">📝 Voorbeeld examen</h3>
+                    <div id="quizContent">
+                        <div class="quiz-question">${course.quiz[0].question}</div>
+                        <div class="quiz-options">
+                            ${course.quiz[0].options.map((opt, idx) => `
+                                <div class="quiz-option" onclick="selectOption(this, ${idx}, ${course.quiz[0].correct})">
+                                    <span style="font-weight: bold;">${String.fromCharCode(65 + idx)}.</span> ${opt}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button class="btn btn-next" onclick="nextQuestion()" id="nextBtn" style="display: none;">Volgende vraag →</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectOption(element, selected, correct) {
+            const options = document.querySelectorAll('.quiz-option');
+            options.forEach(opt => {
+                opt.classList.remove('selected');
+                opt.style.pointerEvents = 'none';
+            });
+            element.classList.add('selected');
+            if (selected === correct) {
+                setTimeout(() => {
+                    element.classList.remove('selected');
+                    element.classList.add('correct');
+                    document.getElementById('nextBtn').style.display = 'inline-block';
+                }, 400);
+            } else {
+                element.classList.add('wrong');
+                options[correct].classList.add('correct');
+            }
+        }
+
+        function nextQuestion() {
+            document.querySelector('.quiz-container').innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <div style="font-size: 4rem; margin-bottom: 20px;">🎓</div>
+                    <h3>Voorbeeld examen voltooid</h3>
+                    <p style="margin: 20px 0;">Je hebt gezien hoe een toetsmoment, feedback en afronding in dezelfde flow kunnen zitten.</p>
+                    <button class="btn" onclick="generateCertificate()" style="width: auto;">Toon voorbeeld certificaat</button>
+                </div>
+            `;
+        }
+
+        function generateCertificate() {
+            closeModal();
+            showPage('certificates');
+        }
+
+        function renderCertificates(container) {
+            const hasCertificate = store.courses.some(c => c.modules.every(m => m.completed));
+            container.innerHTML = `
+                <div class="page-header">
+                    <h2>Voorbeeld certificering</h2>
+                    <p>Illustratie van hoe afronding zichtbaar gemaakt kan worden binnen dezelfde leeromgeving.</p>
+                </div>
+                ${hasCertificate ? `
+                    <div style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; padding: 40px; border-radius: 20px; margin-bottom: 30px; text-align: center; box-shadow: 0 10px 30px rgba(30, 58, 138, 0.3);">
+                        <div style="font-size: 4rem; margin-bottom: 20px;">🏆</div>
+                        <h3 style="font-size: 2rem; margin-bottom: 10px;">Voorbeeld certificaat EPT Basis</h3>
+                        <p style="opacity: 0.9; margin-bottom: 20px;">Behaald door ${store.currentUser.name} op ${new Date().toLocaleDateString('nl-NL')}</p>
+                        <div style="background: rgba(255,255,255,0.2); display: inline-block; padding: 10px 30px; border-radius: 50px; font-weight: 600;">
+                            Voorbeeld geldigheid tot: ${new Date(new Date().setFullYear(new Date().getFullYear() + 5)).toLocaleDateString('nl-NL')}
+                        </div>
+                        <div style="margin-top: 20px;">
+                            <button class="btn" onclick="alert('Voorbeeld export getoond')" style="background: white; color: #1e3a8a; width: auto;">📄 Toon voorbeeld export</button>
+                        </div>
+                    </div>
+                ` : `
+                    <div style="text-align: center; padding: 60px; background: var(--gray-100); border-radius: 20px;">
+                        <div style="font-size: 4rem; margin-bottom: 20px;">📋</div>
+                        <h3>Nog geen voorbeeld certificaat actief</h3>
+                        <p style="margin: 20px 0; color: #6b7280;">Voltooi een demo-cursus om te laten zien hoe certificering gekoppeld kan worden aan voortgang.</p>
+                        <button class="btn" onclick="showPage('courses')" style="width: auto;">Bekijk leeromgeving</button>
+                    </div>
+                `}
+            `;
+        }
+
+        function renderProfile(container) {
+            container.innerHTML = `
+                <div class="page-header">
+                    <h2>Profiel</h2>
+                    <p>Voorbeeld accountgegevens binnen de demo-omgeving.</p>
+                </div>
+                <div style="background: white; padding: 30px; border-radius: 15px; border: 2px solid var(--gray-200);">
+                    <div style="display: grid; gap: 20px; max-width: 600px;">
+                        <div class="form-group">
+                            <label>Naam</label>
+                            <input type="text" value="${store.currentUser.name}" id="profileName">
+                        </div>
+                        <div class="form-group">
+                            <label>E-mail</label>
+                            <input type="email" value="${store.currentUser.email}" disabled style="background: var(--gray-100);">
+                        </div>
+                        <div class="form-group">
+                            <label>Bedrijf</label>
+                            <input type="text" value="${store.currentUser.company || ''}" id="profileCompany">
+                        </div>
+                        <button class="btn" onclick="saveProfile()" style="width: auto;">Wijzigingen opslaan</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function saveProfile() {
+            store.currentUser.name = document.getElementById('profileName').value;
+            store.currentUser.company = document.getElementById('profileCompany').value;
+            localStorage.setItem('user_' + store.currentUser.email, JSON.stringify(store.currentUser));
+            loadUserData();
+            showPage('profile');
+        }
+
+        function closeModal() {
+            document.getElementById('courseModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('courseModal');
+            if (event.target === modal) closeModal();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const lastUser = localStorage.getItem('lastUser');
+            if (lastUser) {
+                const userData = JSON.parse(localStorage.getItem('user_' + lastUser));
+                if (userData) {
+                    store.currentUser = userData;
+                    loadUserData();
+                    showApp();
+                }
+            }
+        });
+		
+		function openTool(url) {
+    window.open(url, '_blank');
+}
+    </script>
+</body>
+</html>
